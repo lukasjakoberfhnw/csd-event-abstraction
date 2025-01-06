@@ -2,24 +2,50 @@
 
 ## Requirements
 
-Make sure that Python 3.11 is installed on the system. 
+### 1. Clone the repository to your local machine.
 
-Install all requirements with pip.
+### 2. Install Python 3.11 on the target machine
+
+If Python 3.11 is already installed, you can skip this point. It may work with other Python 3 Versions, it has not been extensively tested.
+
+### 3. Install all requirements
+
+This can be done by creating a new Python environment for the project or directly by installing the packages globally on the operating system. We recommend to use a new Python environment using venv. Once activated, run the pip install command.
 
 ```
-pip install -r /path/to/requirements.txt
+pip install -r requirements.txt
 ```
 
-Request required datasets from the repository owner.
+### 4. Request Access to Dataset
+Request required datasets from the repository owner. Make sure the file structure of the data fits the one described below (Example: /data/tale-camerino/from_massimiliano/Log/...).
+
+### 5. Preprocess Datasets using the prepared Script
+Run the data preprocessing using the following script: _/src/preprocessing/tale_preprocessing.py_. This creates the _processed_ folder in the data directory.
+
+```
+python ./src/preprocessing/tale_preprocessing.py
+```
+
+### 6. Run Test Benchmark using a Decision Tree
+To create the first benchmark, we have decided on a decision tree to serve as a lower boundary for the accuracy of the models. This guides us as a comparison with other algorithms and approaches. 
+
+To run the decision tree benchmark, execute the following code from the console:
+
+```
+python ./src/decision_tree_prototype.py
+```
+
 
 # Code structure
 
 The repository is split into the following directories to keep related files grouped together.
 
-/.venv 
-/data
-/output 
-/src
+| **Folder** | **Description**                                                                                                   |
+|----------|-----------------------------------------------------------------------------------------------------------|
+| /.venv   | Used for virtual Python environment. Initialized with requirements.txt                                    |
+| /data    | Holds the datasets in a defined structure to read them from code                                          |
+| /output  | Folder used for file outputs like learned machine learning models or images                               |
+| /src     | Contains the source code for the whole project                                                            |
 
 # Data Sources
 
@@ -31,12 +57,11 @@ We have two different Tale Datasets, one from the origial github repository, and
 
 ### Tale Github
 
-Location: /data/tale-camerino/from_github
-Files: MRS.xes, running-mrs.xes
+**Location**: /data/tale-camerino/from_github; **Files**: MRS.xes, running-mrs.xes
 
 ### Tale Massimiliano
 
-Location: /data/tale-camerino/from_massimiliano
+**Location**: /data/tale-camerino/from_massimiliano
 
 | **Type** | **Path**                                                                                                   |
 |----------|-----------------------------------------------------------------------------------------------------------|
@@ -86,12 +111,12 @@ File: Processing folder 2022-08-01_15_09_15.463175 (16/36) --> macro.csv is empt
 
 #### 
 
-## Other sources
+## Other sources that might be interesting
 
-CASAS (maybe interesting)
-SCAND (https://dataverse.tdl.org/dataset.xhtml?persistentId=doi:10.18738/T8/0PRYRH)
+- CASAS
+- SCAND (https://dataverse.tdl.org/dataset.xhtml?persistentId=doi:10.18738/T8/0PRYRH)
 
-# Approaches
+# Possible Approaches
 
 Clustering:
 - DBSCAN

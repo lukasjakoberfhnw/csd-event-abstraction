@@ -16,7 +16,7 @@ def main():
 
     # use the multiple runs to predict activity
     for file in os.listdir(data_path):
-        if file.endswith(".csv") and not file.startswith("16"):
+        if file.endswith(".csv") and not file.startswith("16"): # exclude run 16 because it had some errors
             df = pd.read_csv(os.path.join(data_path, file), dtype=dtype)
 
             print("Loading file", file)
