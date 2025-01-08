@@ -12,11 +12,15 @@ def has_payload(payload):
     if payload is None or pd.isna(payload) or payload == "":
         return "no_payload"
     if "/tractor" in str(payload):
-        return "/tractor"
+        return "/tractor" # most likely to be CUT_GRASS
+    elif "name" in str(payload):
+        return "name" # most likely to be CLOSTEST_TRACTOR
     elif "tractor" in str(payload):
-        return "tractor"
+        return "tractor" # most likely to be TRACTOR_POSITION
+    elif "weed" in str(payload):
+        return "weed" # most likely to be WEED_POSITION
     else:
-        return "weed"
+        return "unknown"
 
 def load_folders_and_preprocess_data():
     # get all folders in the data/tale/from_massimiliano folder
@@ -24,7 +28,7 @@ def load_folders_and_preprocess_data():
     print(folders)
 
     # have a main dataframe to collect all the data
-    main_frame = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'dx', 'dy', 'dz', 'robot'])
+    main_frame = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'dx', 'dy', 'dz', 'robot', 'has_payload', 'run'])
 
     for i, folder in enumerate(folders):
         print(f"Processing folder {folder} ({i+1}/{len(folders)})")

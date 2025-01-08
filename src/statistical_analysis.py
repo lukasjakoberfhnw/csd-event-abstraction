@@ -10,22 +10,13 @@ def main():
     full_df = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'robot', 'run', 'has_payload'])
 
     # use the multiple runs to predict activity
-    for file in os.listdir(data_path):
-        if file.endswith(".csv") and not file.startswith("16"):
-            df = pd.read_csv(os.path.join(data_path, file), dtype=dtype)
-
-            print("Loading file", file)
-
-            # print all nan values of the dataframe
-            # print(df.isna().sum())
-
-            full_df = pd.concat([full_df, df])
+    data = pd.read_csv(os.path.join(data_path, 'full_dataset.csv'), dtype=dtype)
 
     # print statistics about runs
-    print(full_df['run'].value_counts())
+    print(data['run'].value_counts())
 
     # print statistics for each run and activity
-    print(full_df.groupby(['run', 'activity']).size())
+    print(data.groupby(['run', 'activity']).size())
 
 
 if __name__ == "__main__":

@@ -12,26 +12,31 @@ output_path = os.path.join(os.path.dirname(__file__), '..', 'output')
 dtype = {'time': 'str', 'activity': 'category', 'x': 'float', 'y': 'float', 'z': 'float', 'robot': 'category', 'run': 'int', 'has_payload': 'category'}
 
 def main():
-    full_df = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'robot', 'run', 'has_payload'])
+    # full_df = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'robot', 'run', 'has_payload'])
 
     # use the multiple runs to predict activity
-    for file in os.listdir(data_path):
-        if file.endswith(".csv") and not file.startswith("16"): # exclude run 16 because it had some errors
-            df = pd.read_csv(os.path.join(data_path, file), dtype=dtype)
+    # for file in os.listdir(data_path):
+    #     if file.endswith(".csv") and not file.startswith("16"): # exclude run 16 because it had some errors
+    #         df = pd.read_csv(os.path.join(data_path, file), dtype=dtype)
 
-            print("Loading file", file)
+    #         print("Loading file", file)
 
-            # print all nan values of the dataframe
-            # print(df.isna().sum())
+    #         # print all nan values of the dataframe
+    #         # print(df.isna().sum())
 
-            full_df = pd.concat([full_df, df])
+    #         full_df = pd.concat([full_df, df])
 
+    full_df = pd.read_csv(os.path.join(data_path, 'full_dataset.csv'), dtype=dtype)
+    print("Loaded full dataset")
 
     # make sure all columns are in the correct format
     # full_df['time'] = pd.to_datetime(full_df['time'])
     full_df['activity'] = full_df['activity'].astype('category')
     full_df['has_payload'] = full_df['has_payload'].astype('category')
     full_df['robot'] = full_df['robot'].astype('category')
+
+    # actually drop all unknown values
+    full_df = full_df.loc[full_df['activity'] != 'UNKNOWN']
 
     # one hot encode the activity, has_payload and robot columns
     full_df = pd.get_dummies(full_df, columns=['has_payload', 'robot'])
@@ -52,8 +57,8 @@ def main():
     test_y = test_df['activity'].to_numpy()
 
     # # create a decision tree classifier
-    # clf = DecisionTreeClassifier()
-    clf = RandomForestClassifier(n_estimators=50, max_depth=10)
+    clf = DecisionTreeClassifier()
+    # clf = RandomForestClassifier(n_estimators=50, max_depth=10)
     # clf = AdaBoostClassifier(n_estimators=50)
     # clf = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=50)
 
