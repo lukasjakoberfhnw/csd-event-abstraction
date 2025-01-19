@@ -26,7 +26,8 @@ def main():
 
     #         full_df = pd.concat([full_df, df])
 
-    full_df = pd.read_csv(os.path.join(data_path, 'full_dataset.csv'), dtype=dtype)
+    # full_df = pd.read_csv(os.path.join(data_path, 'full_dataset.csv'), dtype=dtype)
+    full_df = pd.read_csv(os.path.join(data_path, 'filled_main_frame.csv'), dtype=dtype)
     print("Loaded full dataset")
 
     # make sure all columns are in the correct format
@@ -36,7 +37,10 @@ def main():
     full_df['robot'] = full_df['robot'].astype('category')
 
     # actually drop all unknown values
-    full_df = full_df.loc[full_df['activity'] != 'UNKNOWN']
+    # full_df = full_df.loc[full_df['activity'] != 'UNKNOWN']
+    
+    # drop all rows with nan values in column activity
+    full_df = full_df.dropna(subset=['activity'])
 
     # one hot encode the activity, has_payload and robot columns
     full_df = pd.get_dummies(full_df, columns=['has_payload', 'robot'])
@@ -46,18 +50,21 @@ def main():
     test_df = full_df[full_df['run'] >= 30]
 
     # # remove columns that are not needed
-    train_df = train_df.drop(columns=['run', 'payload', 'time', 'lifecycle', 'x', 'y', 'z'])
+    original_remover = ['run', 'payload', 'time', 'lifecycle', 'x', 'y', 'z']
+    test_remover = ['time', 'lifecycle', 'payload', 'x', 'y', 'z',
+       'run']
+    train_df = train_df.drop(columns=test_remover)
     print("Train columns", train_df.columns)
     train_X = train_df.drop(columns=['activity']).to_numpy()
     train_y = train_df['activity'].to_numpy()
 
-    test_df = test_df.drop(columns=['run', 'payload', 'time', 'lifecycle', 'x', 'y', 'z'])
+    test_df = test_df.drop(columns=test_remover)
     print("Test columns", test_df.columns)
     test_X = test_df.drop(columns=['activity']).to_numpy()
     test_y = test_df['activity'].to_numpy()
 
     # # create a decision tree classifier
-    clf = DecisionTreeClassifier()
+    clf = DecisionTreeClassifier(max_depth=10)
     # clf = RandomForestClassifier(n_estimators=50, max_depth=10)
     # clf = AdaBoostClassifier(n_estimators=50)
     # clf = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=50)
@@ -74,6 +81,15 @@ def main():
 
     # print sklearn metrics for the classifier
     print(classification_report(test_y, predictions))
+
+    # draw the decision tree using matplotlib
+    from sklearn.tree import plot_tree
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(20, 10))
+    plot_tree(clf, ax=ax, feature_names=train_df.drop(columns=['activity']).columns, class_names=clf.classes_, filled=True)
+    plt.show()
+
 
 if __name__ == '__main__':
     main()
