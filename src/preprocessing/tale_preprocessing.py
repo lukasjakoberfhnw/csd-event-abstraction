@@ -7,7 +7,7 @@ output_path = os.path.join(os.path.dirname(__file__), '..', '..', 'output')
 tale_XES_file_location = os.path.join(data_path, 'tale-camerino', 'MRS.xes')
 tale_folder_location = os.path.join(data_path, 'tale-camerino', 'from_massimiliano', 'Log')
 tale_processed_location = os.path.join(data_path, 'tale-camerino', 'from_massimiliano', 'processed')
-
+    
 def has_payload(payload):
     if payload is None or pd.isna(payload) or payload == "":
         return "no_payload"
@@ -15,8 +15,8 @@ def has_payload(payload):
         return "/tractor" # most likely to be CUT_GRASS
     elif "name" in str(payload):
         return "name" # most likely to be CLOSTEST_TRACTOR
-    elif "tractor" in str(payload):
-        return "tractor" # most likely to be TRACTOR_POSITION
+    elif "header: tractor" in str(payload):
+        return "header: tractor" # most likely to be TRACTOR_POSITION
     elif "weed" in str(payload):
         return "weed" # most likely to be WEED_POSITION
     else:
