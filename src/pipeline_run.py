@@ -8,7 +8,9 @@ pipeline = joblib.load("./models/pipeline_activity_prediction.pkl")
 activity_encoder = joblib.load("./models/activity_encoder.pkl")
 
 data = pd.read_csv("./data/tale-camerino/from_massimiliano/processed/tale_data_raw_aggregated.csv")  # Load data
-features = pd.DataFrame([data["features"]])  # Convert input to DataFrame
+
+# Select a single row of data
+features = data.iloc[0:1]
 
 # Make predictions
 encoded_prediction = pipeline.predict(features).tolist()

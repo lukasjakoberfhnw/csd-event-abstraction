@@ -1,10 +1,15 @@
 import os
 import joblib
 import pandas as pd
+import sys
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 from preprocessing.preprocessor_4 import ManualPreprocessingTransformer
+
+# load the preprocessing function from the preprocessing folder
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'preprocessing')))
+from preprocessing.pipelines import preprocess_manual_preparation
 
 # Define paths
 TALE_PROCESSED_PATH = "C:/Users/lukas/dev/camerino/csd/event_abstraction_csd/data/tale-camerino/from_massimiliano/processed"
@@ -28,19 +33,27 @@ print(f"Activity encoder saved to: {activity_encoder_path}")
 print(df.head())
 
 # Separate features (X) and target (y)
+X = df # all columns
 y = df["activity"]  # Encoded target
-X = df.drop(columns=["activity"])  # Features
 
-# # Create a pipeline with preprocessing + model
-# pipeline = Pipeline([
-#     ("manual_preprocessing", ManualPreprocessingTransformer()),  # Custom feature engineering
-#     ("model", DecisionTreeClassifier())  # ML model
-# ])
+# Create a pipeline with preprocessing + model - for training
+pipeline_train = Pipeline([
+    ("manual_preprocessing", ManualPreprocessingTransformer(preprocessing_function=preprocess_manual_preparation, train=False)),  # Custom feature engineering
+    ("model", DecisionTreeClassifier(max_depth=10))  # ML model
+])
 
-# # Train the pipeline
-# pipeline.fit(X, y)
+# Train the pipeline
+pipeline_train.fit(X, y)
 
-# # Save the entire pipeline
-# pipeline_path = os.path.join(MODEL_PATH, "pipeline_activity_prediction.pkl")
-# joblib.dump(pipeline, pipeline_path)
-# print(f"Pipeline saved to: {pipeline_path}")
+
+# print pipeline steps
+print(pipeline_train.steps)
+
+# print pipeline results
+print(pipeline_train)
+
+
+# Save the entire pipeline
+pipeline_path = os.path.join(MODEL_PATH, "pipeline_activity_prediction.pkl")
+joblib.dump(pipeline_train, pipeline_path)
+print(f"Pipeline saved to: {pipeline_path}")

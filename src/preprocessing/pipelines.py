@@ -10,6 +10,10 @@ TALE_PROCESSED_PATH = "./data/tale-camerino/from_massimiliano/processed"
 def load_tale_data_from_raw_files(tale_folder_location) -> pd.DataFrame:
     """
     Load the tale data from the raw files. Is used for the different preprocessings.
+
+    :param str tale_folder_location: location of the tale folder (/Log directory)
+    :return: loaded tale data
+    :rtype: pd.DataFrame
     """
     # main_frame = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'dx', 'dy', 'dz', 'robot', 'has_payload', 'run'])
     df_list = []
@@ -59,9 +63,15 @@ def load_tale_data_from_raw_files(tale_folder_location) -> pd.DataFrame:
     main_frame = pd.concat(df_list, ignore_index=True)
     return main_frame
 
-def preprocess_manual_preparation(raw_data) -> pd.DataFrame:
+def preprocess_manual_preparation(raw_data, train) -> pd.DataFrame:
     """
-    APPROACH 3: Preprocess the data using the findings from the manual data analysis.
+    APPROACH 4: Preprocess the data using the findings from the manual data analysis.
+
+    :param pd.DataFrame raw_data: loaded tale data from the raw files as a DataFrame
+    :param bool train: whether the data is training data or not
+    :return: preprocessed data
+    :rtype: pd.DataFrame
+
     """
 
     # fill x,y,z for rows that are coming from the macro.csv file - thus don't have x,y,z values
@@ -75,21 +85,25 @@ def preprocess_manual_preparation(raw_data) -> pd.DataFrame:
     filled_main_frame["dy"] = filled_main_frame.groupby("robot")["y"].diff()
     filled_main_frame["dx"] = filled_main_frame.groupby("robot")["x"].diff()
 
-    # for each run, fill EXPLORE activity for the drone_1 robot from START to STOP
-    drone_1_indeces = filled_main_frame[(filled_main_frame['robot'] == 'drone_1') & (pd.isna(filled_main_frame["activity"]))].index
-    for i in range(filled_main_frame["run"].max()):
-        print(f"Currently processing run {i} for propagating EXPLORE")
-        explore_start_indices = filled_main_frame[(filled_main_frame['activity'] == 'EXPLORE') & (filled_main_frame["lifecycle"] == "START") & (filled_main_frame["run"] == i)].index
-        explore_stop_indices = filled_main_frame[(filled_main_frame['activity'] == 'EXPLORE') & (filled_main_frame["lifecycle"] == "STOP") & (filled_main_frame["run"] == i)].index
+    # for each run, fill EXPLORE activity for the drone_1 robot from START to STOP only if it's the preprocessing for training data
+    if train:
+        drone_1_indeces = filled_main_frame[(filled_main_frame['robot'] == 'drone_1') & (pd.isna(filled_main_frame["activity"]))].index
+        for i in range(filled_main_frame["run"].max() + 1):
+            print(f"Currently processing run {i} for propagating EXPLORE")
+            explore_start_indices = filled_main_frame[(filled_main_frame['activity'] == 'EXPLORE') & (filled_main_frame["lifecycle"] == "START") & (filled_main_frame["run"] == i)].index
+            explore_stop_indices = filled_main_frame[(filled_main_frame['activity'] == 'EXPLORE') & (filled_main_frame["lifecycle"] == "STOP") & (filled_main_frame["run"] == i)].index
 
-        for j in range(len(explore_start_indices)):
-            start_index = explore_start_indices[j]
-            stop_index = explore_stop_indices[j]
-            indices = drone_1_indeces[(drone_1_indeces >= start_index) & (drone_1_indeces <= stop_index)]
-            filled_main_frame.loc[indices, 'activity'] = 'EXPLORE'
+            # print(explore_start_indices)
+            # print(explore_stop_indices)
+
+            for j in range(len(explore_start_indices)):
+                start_index = explore_start_indices[j]
+                stop_index = explore_stop_indices[j]
+                indices = drone_1_indeces[(drone_1_indeces >= start_index) & (drone_1_indeces <= stop_index)]
+                filled_main_frame.loc[indices, 'activity'] = 'EXPLORE'
 
     # for each run, add feature minutes_since_start
-    for i in range(filled_main_frame["run"].max()):
+    for i in range(filled_main_frame["run"].max() + 1):
         # create new features minutes_since_start
         print(f"Currently processing run {i} for adding feature minutes_since_start")
         filled_main_frame.loc[filled_main_frame["run"] == i, "minutes_since_start"] = (filled_main_frame.loc[filled_main_frame["run"] == i, "time"] - filled_main_frame.loc[filled_main_frame["run"] == i, "time"].min()).dt.total_seconds() / 60
@@ -97,18 +111,35 @@ def preprocess_manual_preparation(raw_data) -> pd.DataFrame:
     print("Adding has_payload feature")
     filled_main_frame["has_payload"] = filled_main_frame["payload"].apply(has_payload)
 
-    # propagate TAKEOFF until the first explore activity for each run
-    for i in range(filled_main_frame["run"].max()):
-        print(f"Currently processing run {i} for propagating TAKEOFF")
-        if i == 5 or i == 23: # run 5 is damaged and run 23 does for soome reason not have a TAKEOFF activity
-            continue
-        first_takeoff = filled_main_frame[(filled_main_frame["run"] == i) & (filled_main_frame["activity"] == "TAKEOFF")].index[0]
-        first_explore = filled_main_frame[(filled_main_frame["run"] == i) & (filled_main_frame["activity"] == "EXPLORE")].index[0]
+    # propagate TAKEOFF until the first explore activity for each run only if it's the preprocessing for training data
+    if train:
+        # fails because there is no run...
+        for i in range(filled_main_frame["run"].max() + 1): # +1 because the runs are 0 indexed
+            print(f"Currently processing run {i} for propagating TAKEOFF")
+            if i == 5 or i == 23: # run 5 is damaged and run 23 does for soome reason not have a TAKEOFF activity
+                continue
 
-        # fill all drone rows with TAKEOFF activity until the first EXPLORE activity only if the robot is drone_1
-        drone_1_indeces = filled_main_frame[(filled_main_frame['robot'] == 'drone_1') & (pd.isna(filled_main_frame["activity"]))].index
-        indices = drone_1_indeces[(drone_1_indeces >= first_takeoff) & (drone_1_indeces <= first_explore)]
-        filled_main_frame.loc[indices, 'activity'] = 'TAKEOFF'
+            try:
+                first_takeoff = filled_main_frame[(filled_main_frame["run"] == i) & (filled_main_frame["activity"] == "TAKEOFF")].index[0]
+                first_explore = filled_main_frame[(filled_main_frame["run"] == i) & (filled_main_frame["activity"] == "EXPLORE")].index[0]
+
+                # fill all drone rows with TAKEOFF activity until the first EXPLORE activity only if the robot is drone_1
+                drone_1_indeces = filled_main_frame[(filled_main_frame['robot'] == 'drone_1') & (pd.isna(filled_main_frame["activity"]))].index
+                indices = drone_1_indeces[(drone_1_indeces >= first_takeoff) & (drone_1_indeces <= first_explore)]
+                filled_main_frame.loc[indices, 'activity'] = 'TAKEOFF'
+            except IndexError:
+                print(f"Run {i} does not have a TAKEOFF or EXPLORE activity")
+
+    # remove all columns that are not needed
+    filled_main_frame.drop(columns=['time', 'lifecycle', 'payload', 'x', 'y', 'z','run'], inplace=True)
+
+    if train:
+        filled_main_frame["activity"] = filled_main_frame["activity"].fillna("IDLE")
+    else:
+        filled_main_frame = filled_main_frame.drop(columns=["activity"])
+
+    # one hot encode the robot and has_payload columns
+    filled_main_frame = pd.get_dummies(filled_main_frame, columns=['robot', 'has_payload'])
 
     return filled_main_frame
 
@@ -117,14 +148,22 @@ if __name__ == "__main__":
     tale_data = load_tale_data_from_raw_files(TALE_RAW_PATH)
     tale_data.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"), index=False)
 
+    # last_run_data = tale_data[tale_data['run'] == tale_data['run'].max()]
+    # print(last_run_data.head())
+    # last_run_data.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_run.csv"), index=False)
+    # preprocess_last_run = preprocess_manual_preparation(last_run_data, train=True)
+    # print(preprocess_last_run.head())
+    # preprocess_last_run.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_prep_4_train.csv"), index=False)
+
     # Preprocessings
     # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"))
-    preprocessed_3 = preprocess_manual_preparation(tale_data)
-    preprocessed_3.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3.csv"), index=False)
+    preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
+    print(preprocessed_4.head())
+    preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
 
     # Load Preprocessed File
-    tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3.csv"))
-    print(tale_data.head())
+    # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"))
+    # print(tale_data.head())
 
 
 # TODO: Clean run 5 or drop, clean run 23 or drop
