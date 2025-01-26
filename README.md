@@ -132,3 +132,6 @@ Graph-based clustering:
 - Markov Chains, Bayesian Networks, Petri Nets
 - Community Detection Algorithms (Louvain, Infomap)
 - Spectral Clustering (Adjecency or Laplacian Matrix of the graph as input)
+
+# Todo
+Show the final classification in the raw-data for testing --> from which rows are the classes
