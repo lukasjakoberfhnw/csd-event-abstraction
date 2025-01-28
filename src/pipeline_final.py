@@ -17,7 +17,6 @@ def check_prediction_using_stored_clf():
 
     # take the last run as test data
     test_data = data[data['run'] == data['run'].max()]
-    # test_X = test_data.drop(columns=['activity', 'run'])
     test_data_y = test_data['activity'].fillna("IDLE")
 
     # preprocess the test data

@@ -102,6 +102,39 @@ def preprocess_manual_preparation(raw_data, train) -> pd.DataFrame:
                 indices = drone_1_indeces[(drone_1_indeces >= start_index) & (drone_1_indeces <= stop_index)]
                 filled_main_frame.loc[indices, 'activity'] = 'EXPLORE'
 
+    # for each run, fill MOVE and CUT_GRASS activity for the tractors robot from START to STOP only if it's the preprocessing for training data
+    if train:
+        tractor_indeces = filled_main_frame[(filled_main_frame['robot'] != 'drone_1') & (pd.isna(filled_main_frame["activity"]))].index
+        for i in range(filled_main_frame["run"].max() + 1):
+            if i == 5 or i == 23: # run 5 is damaged and run 23 does for soome reason not have a TAKEOFF activity
+                continue
+            print(f"Currently processing run {i} for propagating MOVE")
+            move_start_indices = filled_main_frame[(filled_main_frame['activity'] == 'MOVE') & (filled_main_frame["lifecycle"] == "START") & (filled_main_frame["run"] == i)].index
+            move_stop_indices = filled_main_frame[(filled_main_frame['activity'] == 'MOVE') & (filled_main_frame["lifecycle"] == "STOP") & (filled_main_frame["run"] == i)].index
+            # print(move_start_indices)
+            # print(move_stop_indices)
+            try:
+                for j in range(len(move_start_indices)):
+                    start_index = move_start_indices[j]
+                    stop_index = move_stop_indices[j]
+                    indices = tractor_indeces[(tractor_indeces >= start_index) & (tractor_indeces <= stop_index)]
+                    filled_main_frame.loc[indices, 'activity'] = 'MOVE'
+            except IndexError:
+                print(f"Run {i} fails at MOVE activity: {len(move_start_indices)} {len(move_stop_indices)}")
+
+            print(f"Currently processing run {i} for propagating CUT_GRASS")
+            cut_grass_start_indices = filled_main_frame[(filled_main_frame['activity'] == 'CUT_GRASS') & (filled_main_frame["lifecycle"] == "START") & (filled_main_frame["run"] == i)].index
+            cut_grass_stop_indices = filled_main_frame[(filled_main_frame['activity'] == 'CUT_GRASS') & (filled_main_frame["lifecycle"] == "STOP") & (filled_main_frame["run"] == i)].index
+
+            try:
+                for j in range(len(cut_grass_start_indices)):
+                    start_index = cut_grass_start_indices[j]
+                    stop_index = cut_grass_stop_indices[j]
+                    indices = tractor_indeces[(tractor_indeces >= start_index) & (tractor_indeces <= stop_index)]
+                    filled_main_frame.loc[indices, 'activity'] = 'CUT_GRASS'
+            except IndexError:
+                print(f"Run {i} fails at CUT_GRASS activity: {len(cut_grass_start_indices)} {len(cut_grass_stop_indices)}")
+
     # for each run, add feature minutes_since_start
     for i in range(filled_main_frame["run"].max() + 1):
         # create new features minutes_since_start
@@ -130,6 +163,18 @@ def preprocess_manual_preparation(raw_data, train) -> pd.DataFrame:
             except IndexError:
                 print(f"Run {i} does not have a TAKEOFF or EXPLORE activity")
 
+            try:
+                land_start_indices = filled_main_frame[(filled_main_frame['activity'] == 'LAND') & (filled_main_frame["lifecycle"] == "START") & (filled_main_frame["run"] == i)].index
+                land_end_indices = filled_main_frame[(filled_main_frame['activity'] == 'LAND') & (filled_main_frame["lifecycle"] == "STOP") & (filled_main_frame["run"] == i)].index
+
+                for j in range(len(land_start_indices)):
+                    start_index = land_start_indices[j]
+                    stop_index = land_end_indices[j]
+                    indices = drone_1_indeces[(drone_1_indeces >= start_index) & (drone_1_indeces <= stop_index)]
+                    filled_main_frame.loc[indices, 'activity'] = 'LAND'
+            except IndexError:
+                print(f"Run {i} does not have correct LAND activities {len(land_start_indices)} {len(land_end_indices)}")
+
     # remove all columns that are not needed
     filled_main_frame.drop(columns=['time', 'lifecycle', 'payload', 'x', 'y', 'z','run'], inplace=True)
 
@@ -140,6 +185,8 @@ def preprocess_manual_preparation(raw_data, train) -> pd.DataFrame:
 
     # one hot encode the robot and has_payload columns
     filled_main_frame = pd.get_dummies(filled_main_frame, columns=['robot', 'has_payload'])
+
+    # remove corrupted runs (5, 23)
 
     return filled_main_frame
 
