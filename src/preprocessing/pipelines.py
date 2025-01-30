@@ -205,7 +205,7 @@ def preprocess_massimiliano(tale_folder_location: str, train: True) -> pd.DataFr
 
     main_frame = pd.concat(df_list, ignore_index=True)
 
-    main_frame = main_frame.drop(columns=['time', 'lifecycle', 'payload', 'run'])
+    main_frame = main_frame.drop(columns=['time', 'lifecycle', 'payload'])
     main_frame = pd.get_dummies(main_frame, columns=['robot'])
 
     return main_frame
@@ -293,7 +293,7 @@ def preprocess_enhanced_massimiliano(tale_folder_location: str, train: True) -> 
 
     main_frame["has_payload"] = main_frame["payload"].apply(has_payload)
 
-    main_frame = main_frame.drop(columns=['time', 'lifecycle', 'payload', 'run'])
+    main_frame = main_frame.drop(columns=['time', 'lifecycle', 'payload']) # 'run' -- keep run and time in for now to test the crf_prototype
     main_frame = pd.get_dummies(main_frame, columns=['robot', 'has_payload'])
 
     return main_frame
@@ -455,13 +455,13 @@ if __name__ == "__main__":
     # print(preprocessed_3.head())
     # preprocessed_3.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_train.csv"), index=False)
 
-    # preprocessed_3_5 = preprocess_enhanced_massimiliano(TALE_RAW_PATH, train=True)
-    # print(preprocessed_3_5.head())
-    # preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
+    preprocessed_3_5 = preprocess_enhanced_massimiliano(TALE_RAW_PATH, train=True)
+    print(preprocessed_3_5.head())
+    preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
 
-    preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
-    print(preprocessed_4.head())
-    preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
+    # preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
+    # print(preprocessed_4.head())
+    # preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
 
     # Load Preprocessed File
     # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"))
