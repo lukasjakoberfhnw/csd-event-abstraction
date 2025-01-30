@@ -14,7 +14,15 @@ dtype = {'time': 'str', 'activity': 'category', 'x': 'float', 'y': 'float', 'z':
 
 
 def main():
-    full_df = pd.read_csv(os.path.join(data_path, 'tale_data_preprocessed_4_train.csv'))
+    chosen_preprocessing_method = 4
+    preprocessing_methods = ['1', '2', '3', '3_5', '4']
+    preprocessing_file = 'tale_data_preprocessed_' + preprocessing_methods[chosen_preprocessing_method] + '_train.csv'
+
+    full_df = pd.read_csv(os.path.join(data_path, preprocessing_file))
+
+    # drop unpredictable activities: ["LOW_BATTERY", "TIME_OUT", "RETURN_TO_BASE"]
+    full_df = full_df.loc[~full_df['activity'].isin(["LOW_BATTERY", "TIME_OUT", "RETURN_TO_BASE"])]
+
     print("Loaded full dataset")
 
     # make sure all columns are in the correct format
