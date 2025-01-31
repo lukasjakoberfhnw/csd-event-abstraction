@@ -414,7 +414,7 @@ def preprocess_manual_preparation(raw_data: pd.DataFrame, train: bool) -> pd.Dat
                 print(f"Run {i} does not have correct LAND activities {len(land_start_indices)} {len(land_end_indices)}")
 
     # remove all columns that are not needed
-    filled_main_frame.drop(columns=['time', 'lifecycle', 'payload', 'x', 'y', 'z','run'], inplace=True)
+    filled_main_frame.drop(columns=['time', 'lifecycle', 'payload', 'x', 'y', 'z'], inplace=True)
 
     if train:
         filled_main_frame["activity"] = filled_main_frame["activity"].fillna("IDLE")
@@ -455,13 +455,14 @@ if __name__ == "__main__":
     # print(preprocessed_3.head())
     # preprocessed_3.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_train.csv"), index=False)
 
-    preprocessed_3_5 = preprocess_enhanced_massimiliano(TALE_RAW_PATH, train=True)
-    print(preprocessed_3_5.head())
-    preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
+    # preprocessed_3_5 = preprocess_enhanced_massimiliano(TALE_RAW_PATH, train=True)
+    # print(preprocessed_3_5.head())
+    # print(preprocessed_3_5["activity"].unique())
+    # preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
 
-    # preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
-    # print(preprocessed_4.head())
-    # preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
+    preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
+    print(preprocessed_4.head())
+    preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
 
     # Load Preprocessed File
     # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"))
