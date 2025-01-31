@@ -8,7 +8,9 @@ def to_sequential(df: pd.DataFrame, out_name: str, recreate: bool = False):
     if os.path.exists(out_name) and not recreate:
         print("Loading existing tensors...")
         X_tensor, Y_tensor = torch.load(out_name)
-        labelEncoder = torch.load(out_name + "_labelEncoder")
+        
+        encoder = LabelEncoder()
+        encoder.classes_ = np.load("labelEncoder_" + out_name[:-4] + ".npy")
         return X_tensor, Y_tensor, labelEncoder
     
     feature_columns = df.columns
@@ -23,9 +25,9 @@ def to_sequential(df: pd.DataFrame, out_name: str, recreate: bool = False):
     df[label_column] = labelEncoder.fit_transform(df[label_column]) 
 
     # Store label encoding for future reference to file
-    labelEncoder_file = out_name + "_labelEncoder"
-    torch.save(labelEncoder, labelEncoder_file)
-
+    labelEncoder_file = "labelEncoder_" + out_name[:-4] + ".npy"
+    np.save(labelEncoder_file, labelEncoder.classes_)
+    
     # Convert True/False columns to 1/0
     df = df.astype({col: int for col in df.columns if df[col].dtype == bool})
 
@@ -37,7 +39,8 @@ def to_sequential(df: pd.DataFrame, out_name: str, recreate: bool = False):
 
     # Define sequence length
     sequence_length = 50 # length of sequence
-    stride = 10 # how much we slide in the sliding window approach :)
+    # stride = 10 # how much we slide in the sliding window approach :) 
+    stride = 50 # does not create any overlapping sequences --> might mess up the last sequence?? 
 
     # Convert tabular data into sequences
     X_sequences = []
@@ -85,7 +88,7 @@ def main():
     print("Unique classes:", torch.unique(y_test.view(-1)))
 
     # Load preprocessing 4 dataset
-    preprocessing_file_4_path = os.path.join(os.path.dirname(__file__), '..', 'data', "tale-camerino", "from_massimiliano", "processed", "tale_data_preprocessed_4_train.csv")
+    preprocessing_file_4_path = os.path.join(os.path.dirname(__file__), '..', 'data', "tale-camerino", "from_massimiliano", "processed", "tale_data_preprocessed_4_train_without_unpredictable.csv")
     df = pd.read_csv(preprocessing_file_4_path)
     print(len(df))
 
@@ -94,7 +97,7 @@ def main():
     # get index of the end of the first run
     first_run_index = df[df['run'] == 0].index[-1]
     
-    supposed = 12
+    supposed = 9 # 12 in preproc 4
     for i in range(df["run"].nunique()):
         print(f"Run {i}:", df[df['run'] == i].shape)
         # print(f"Run {i}:", df[df['run'] == i]["activity"].value_counts())

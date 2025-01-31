@@ -441,7 +441,7 @@ if __name__ == "__main__":
     # preprocess_last_run.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_prep_4_train.csv"), index=False)
 
     # Preprocessings
-    tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"))
+    # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"))
 
     # preprocessed_1 = preprocess_ffill_xyz(tale_data, train=True)
     # print(preprocessed_1.head())
@@ -460,13 +460,17 @@ if __name__ == "__main__":
     # print(preprocessed_3_5["activity"].unique())
     # preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
 
-    preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
-    print(preprocessed_4.head())
-    preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
+    # preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
+    # print(preprocessed_4.head())
+    # preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
 
     # Load Preprocessed File
-    # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"))
-    # print(tale_data.head())
+    preprocessed_4 = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"))
+    print(preprocessed_4.head())    
+    preprocessed_4_without_unpredictable = preprocessed_4.loc[~preprocessed_4["activity"].isin(["LOW_BATTERY", "RETURN_TO_BASE", "TIME_OUT"])]
+    print(preprocessed_4_without_unpredictable.head())
+    preprocessed_4_without_unpredictable.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train_without_unpredictable.csv"), index=False)
+
 
 
 # TODO: Clean run 5 or drop, clean run 23 or drop

@@ -38,11 +38,11 @@ class ActivityDataset(Dataset):
 hidden_size = 10  # Number of hidden units
 #output_size = 3  # Number of activity classes (e.g., "walking", "running", "standing")
 # sequence_length = 1  # Number of timesteps in each sequence
-num_epochs = 5
+num_epochs = 50
 learning_rate = 0.01
 
 # Load preprocessing 4 dataset
-preprocessing_file_4_path = os.path.join(os.path.dirname(__file__), '..', 'data', "tale-camerino", "from_massimiliano", "processed", "tale_data_preprocessed_4_train.csv")
+preprocessing_file_4_path = os.path.join(os.path.dirname(__file__), '..', 'data', "tale-camerino", "from_massimiliano", "processed", "tale_data_preprocessed_4_train_without_unpredictable.csv")
 df = pd.read_csv(preprocessing_file_4_path)
 print(len(df))
 
@@ -106,7 +106,7 @@ y_test = torch.tensor(y_test, dtype=torch.long)
 
 predicted = model(X_test)  # Get predictions
 predicted_labels = torch.argmax(predicted, dim=2)  # Convert to class labels
-print(f'Predicted activities: {predicted_labels.tolist()}')
+# print(f'Predicted activities: {predicted_labels.tolist()}')
 
 # Unroll the sequences for evaluation
 predicted_labels_unrolled = predicted_labels.view(-1)
