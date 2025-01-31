@@ -3,6 +3,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import pandas as pd
+import os
+from sklearn.preprocessing import LabelEncoder
+from tabular_to_sequential import to_sequential
 
 # Define the many-to-many RNN model
 class ManyToManyRNN(nn.Module):
@@ -33,39 +37,43 @@ class ActivityDataset(Dataset):
 # input_size = 1  # Number of features per timestep (e.g., sensor readings)
 hidden_size = 10  # Number of hidden units
 #output_size = 3  # Number of activity classes (e.g., "walking", "running", "standing")
-sequence_length = 1  # Number of timesteps in each sequence
-num_epochs = 10
+# sequence_length = 1  # Number of timesteps in each sequence
+num_epochs = 5
 learning_rate = 0.01
 
-# Generate a toy dataset: Random runs as input, activities as output labels
-num_samples = 50
-# x_train = torch.rand(num_samples, sequence_length, input_size)  # Random runs (simulated)
-# y_train = torch.randint(0, output_size, (num_samples, sequence_length))  # Random activity labels
+# Load preprocessing 4 dataset
+preprocessing_file_4_path = os.path.join(os.path.dirname(__file__), '..', 'data', "tale-camerino", "from_massimiliano", "processed", "tale_data_preprocessed_3_5_train.csv")
+df = pd.read_csv(preprocessing_file_4_path)
+print(len(df))
 
-# # Convert labels to one-hot encoding for multi-class classification
-# y_train_one_hot = torch.nn.functional.one_hot(y_train, num_classes=output_size).float()
+df.dropna(inplace=True)
 
-# read data from preprocessing file
-import pandas as pd
-import os
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
+# get index of the end of the first run
+first_run_index = df[df['run'] == 0].index[-1]
+second_run_index = df[df['run'] == 1].index[-1]
 
-# Load the saved sequential dataset
-X_tensor, Y_tensor = torch.load("sequential_data.pth")
+# df = df.iloc[:20000]
+df_train = df.iloc[0:first_run_index]
+df_test = df.iloc[first_run_index:second_run_index]
+
+print(len(df_train))
+print(len(df_test))
+
+X_train, y_train, labelEncoder_train = to_sequential(df_train, "sequential_data.pth")
+X_test, y_test, labelEncoder_test = to_sequential(df_test, "sequential_data_test.pth")
 
 # Check the shape of loaded tensors
-print("Loaded Input Shape:", X_tensor.shape)  # (num_samples, sequence_length, num_features)
-print("Loaded Target Shape:", Y_tensor.shape)  # (num_samples, sequence_length)
+print("Loaded Input Shape:", X_train.shape)  # (num_samples, sequence_length, num_features)
+print("Loaded Target Shape:", y_train.shape)  # (num_samples, sequence_length)
 
 # Instantiate Dataset
-dataset = ActivityDataset(X_tensor, Y_tensor)
+dataset = ActivityDataset(X_train, y_train)
 batch_size = 32  # Adjust based on memory & dataset size
 train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-input_size = X_tensor.shape[2]
+input_size = X_train.shape[2]
 
-output_size = len(torch.unique(Y_tensor))  # Number of classes
-print("Unique classes:", torch.unique(Y_tensor))  # Debugging step
+output_size = len(torch.unique(y_train))  # Number of classes
+print("Unique classes:", torch.unique(y_train))  # Debugging step
 
 # Model, loss, and optimizer
 model = ManyToManyRNN(input_size, hidden_size, output_size)
@@ -89,10 +97,12 @@ for epoch in range(num_epochs):
 
 
 # Load test sequential data
-X_test, Y_test = torch.load("sequential_data_test.pth")
+# X_test, Y_test = torch.load("sequential_data_test.pth")
 
+print("Testing the model...")
+model.eval()  # Set model to evaluation mode
 x_test = torch.tensor(X_test, dtype=torch.float32)
-y_test = torch.tensor(Y_test, dtype=torch.long)
+y_test = torch.tensor(y_test, dtype=torch.long)
 
 predicted = model(X_test)  # Get predictions
 predicted_labels = torch.argmax(predicted, dim=2)  # Convert to class labels
@@ -103,4 +113,11 @@ predicted_labels_unrolled = predicted_labels.view(-1)
 y_test_unrolled = y_test.view(-1)
 accuracy = (predicted_labels_unrolled == y_test_unrolled).float().mean()
 print(f'Test Accuracy: {accuracy.item() * 100:.2f}%')
+
+# Convert back to original labels
+predicted_labels_unrolled = labelEncoder_test.inverse_transform(predicted_labels_unrolled)
+y_test_unrolled = labelEncoder_test.inverse_transform(y_test_unrolled)
+
+# Classification report
+print(classification_report(y_test_unrolled, predicted_labels_unrolled))
 
