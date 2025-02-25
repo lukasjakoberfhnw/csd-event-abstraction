@@ -20,7 +20,9 @@ def check_prediction_using_stored_clf():
     test_data_y = test_data['activity'].fillna("IDLE")
 
     # preprocess the test data
-    test_X = preprocess_manual_preparation(test_data, train=False).to_numpy()
+    test_X = preprocess_manual_preparation(test_data, train=False)
+    test_X = test_X.drop(columns=['run']).to_numpy()
+
 
     # load the classifier
     clf = joblib.load("./output/decision_tree_classifier.joblib")

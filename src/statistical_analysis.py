@@ -4,19 +4,31 @@ import pandas as pd
 data_path = os.path.join(os.path.dirname(__file__), '..', 'data', "tale-camerino", "from_massimiliano", "processed")
 output_path = os.path.join(os.path.dirname(__file__), '..', 'output')
 
-dtype = {'time': 'str', 'activity': 'category', 'x': 'float', 'y': 'float', 'z': 'float', 'robot': 'category', 'run': 'int', 'has_payload': 'category'}
-
 def main():
-    full_df = pd.DataFrame(columns=['time', 'activity', 'lifecycle', 'payload', 'x', 'y', 'z', 'robot', 'run', 'has_payload'])
+    # get unique values from preprocessed 4 dataset
+    preprocessing_file_4_path = os.path.join(data_path, "tale_data_preprocessed_4_train.csv")
+    df = pd.read_csv(preprocessing_file_4_path)
 
-    # use the multiple runs to predict activity
-    data = pd.read_csv(os.path.join(data_path, 'full_dataset.csv'), dtype=dtype)
+    # get unique activity for drone, robot, and shared
+    print(df.head())
 
-    # print statistics about runs
-    print(data['run'].value_counts())
+    # get unique activity for drone
+    drone_rows = df[df['robot_drone_1'] == True]
 
-    # print statistics for each run and activity
-    print(data.groupby(['run', 'activity']).size())
+    # get unique activity for drone
+    robot_rows = df[df['robot_drone_1'] == False]
+
+    # get unique activity for shared
+    activity_shared = df['activity'].unique()
+
+    print(drone_rows['activity'].unique())
+    print(robot_rows['activity'].unique())
+
+    
+
+    print(activity_shared)
+
+
 
 
 if __name__ == "__main__":
