@@ -9,3 +9,4 @@ bagpy
 notebook
 python-crfsuite
 torch
+joblib

@@ -430,39 +430,39 @@ def preprocess_manual_preparation(raw_data: pd.DataFrame, train: bool) -> pd.Dat
 
 if __name__ == "__main__":
     # Generate Raw File
-    # tale_data = load_tale_data_from_raw_files(TALE_RAW_PATH)
-    # tale_data.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"), index=False)
+    tale_data = load_tale_data_from_raw_files(TALE_RAW_PATH)
+    tale_data.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"), index=False)
 
-    # last_run_data = tale_data[tale_data['run'] == tale_data['run'].max()]
-    # print(last_run_data.head())
-    # last_run_data.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_run.csv"), index=False)
-    # preprocess_last_run = preprocess_manual_preparation(last_run_data, train=True)
-    # print(preprocess_last_run.head())
-    # preprocess_last_run.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_prep_4_train.csv"), index=False)
+    last_run_data = tale_data[tale_data['run'] == tale_data['run'].max()]
+    print(last_run_data.head())
+    last_run_data.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_run.csv"), index=False)
+    preprocess_last_run = preprocess_manual_preparation(last_run_data, train=True)
+    print(preprocess_last_run.head())
+    preprocess_last_run.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_last_prep_4_train.csv"), index=False)
 
     # Preprocessings
-    # tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"))
+    tale_data = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_raw_aggregated.csv"))
 
-    # preprocessed_1 = preprocess_ffill_xyz(tale_data, train=True)
-    # print(preprocessed_1.head())
-    # preprocessed_1.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_1_train.csv"), index=False)
+    preprocessed_1 = preprocess_ffill_xyz(tale_data, train=True)
+    print(preprocessed_1.head())
+    preprocessed_1.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_1_train.csv"), index=False)
 
-    # preprocessed_2 = preprocess_ffill_activities(tale_data, train=True)
-    # print(preprocessed_2.head())
-    # preprocessed_2.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_2_train.csv"), index=False)
+    preprocessed_2 = preprocess_ffill_activities(tale_data, train=True)
+    print(preprocessed_2.head())
+    preprocessed_2.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_2_train.csv"), index=False)
 
-    # preprocessed_3 = preprocess_massimiliano(TALE_RAW_PATH, train=True)
-    # print(preprocessed_3.head())
-    # preprocessed_3.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_train.csv"), index=False)
+    preprocessed_3 = preprocess_massimiliano(TALE_RAW_PATH, train=True)
+    print(preprocessed_3.head())
+    preprocessed_3.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_train.csv"), index=False)
 
-    # preprocessed_3_5 = preprocess_enhanced_massimiliano(TALE_RAW_PATH, train=True)
-    # print(preprocessed_3_5.head())
-    # print(preprocessed_3_5["activity"].unique())
-    # preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
+    preprocessed_3_5 = preprocess_enhanced_massimiliano(TALE_RAW_PATH, train=True)
+    print(preprocessed_3_5.head())
+    print(preprocessed_3_5["activity"].unique())
+    preprocessed_3_5.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_3_5_train.csv"), index=False)
 
-    # preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
-    # print(preprocessed_4.head())
-    # preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
+    preprocessed_4 = preprocess_manual_preparation(tale_data, train=True)
+    print(preprocessed_4.head())
+    preprocessed_4.to_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"), index=False)
 
     # Load Preprocessed File
     preprocessed_4 = pd.read_csv(os.path.join(TALE_PROCESSED_PATH, "tale_data_preprocessed_4_train.csv"))

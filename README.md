@@ -109,29 +109,78 @@ The files could be explained more in detail with content and structure. However,
 
 File: Processing folder 2022-08-01_15_09_15.463175 (16/36) --> macro.csv is empty
 
-#### 
 
-## Other sources that might be interesting
+# Different Preprocessing Approaches
 
-- CASAS
-- SCAND (https://dataverse.tdl.org/dataset.xhtml?persistentId=doi:10.18738/T8/0PRYRH)
+We have developed different preprocessing algorithms to find the method that leads to the best performance.
 
-# Possible Approaches
+## Preprocessing 1: Forward fill X, Y, Z
 
-Clustering:
-- DBSCAN
-- K-Means
+This approach was used to test the hypothesis if we could simply join the .csv files and forward fill the missing values using the ffill function provided by the pandas library. This method first combines all csv files into one massive table and fills missing X, Y, Z values based on the last valid value. One crucial problem with this approach is the missing variability within the positional arguments. When the position is always just filled, it does not incorporate the variability and does not correctly merge. 
 
-Graph-based clustering:
-- Temporal Event Graph Clustering
-- Dynamic Bayesian Networks (DBN)
-- Temporal Directed Acyclic Graphs (Temporal DAGs)
-- Temporal Pattern Mining with Directed Graphs
-- Hidden Markov Models (HMM) and Sequence Clustering
-- Graph Neural Networks for Temporal Clustering
-- Markov Chains, Bayesian Networks, Petri Nets
-- Community Detection Algorithms (Louvain, Infomap)
-- Spectral Clustering (Adjecency or Laplacian Matrix of the graph as input)
+## Preprocessing 2: Forward fill activities
+Similar to the previous method, this function propagates the activities instead of the positional variables. This ensures the full data scale using all positional rows. However, the inconsistencies within the dataset caused inappropriate value propagation. While this method gets better results, deeper analysis of the results shows wrongful alignments between events and positional values. 
 
-# Todo
-Show the final classification in the raw-data for testing --> from which rows are the classes
+## Preprocessing 3: Lifecycle transformation
+
+This method relies on a similar approach to an already existing code base provided by our supervisor Massimiliano Sampaolo. It processes the macro.csv file using all events and fills them into the odom.csv file using timestamps as orientation. Events always are identified with a START and STOP lifecycle flag. This algorithm fills the selected event from the START timestamp until the time indicated within the STOP row. Highlighting the inconsistencies in the data, some runs were not processable using this method because of the misalignment of START and STOP values within the macro.csv file. 
+
+## Preprocessing 3.5: Adjusted Lifecycle transformation
+
+This preprocessing method integrates feature engineering creating the following variables: dx (difference in x in relation to the previous row from the same robot), dy (difference in y in relation to the previous row from the same robot), dz (difference in z in relation to the previous row from the same robot), has_payload (a transformation scheme that checks for certain distinctions such as “weed”, “/tractor”, or “name” within the payload string, and creates dummies for the categorical columns (robot and has_payload) using the get_dummies function from the pandas library. 
+
+## Preprocessing 4: Manually engineered features
+
+Opposed to the previous methods, this algorithm was created directly from the manual data analysis and merges the different .csv files as a first step. Afterwards, it forward fills the positional values and calculates the various difference variables: dx (difference in x in relation to the previous row from the same robot), dy (difference in y in relation to the previous row from the same robot), dz (difference in z in relation to the previous row from the same robot). Next, it propagates specific events that are supposed to last longer than a split second: EXPLORE, TAKEOFF, LAND, MOVE, and CUT_GRASS. This propagation is done with the help of the lifecycle column within the macro.csv. It transforms the payload from a continuous string into a category by applying a function checking for a specific substring such as “weed”, “/tractor”, or “name”. Finally, the algorithm fills the not known events with IDLE and adds a column minutes_since_start for indicating the current time in the simulation using minutes. 
+
+# Results
+
+## Baseline with Decision Tree Classifier
+
+| Preprocessing Approach                     | Precision | Recall | F1-Score | Support  |
+|--------------------------------------------|-----------|--------|----------|----------|
+| 1: Forward fill with X, Y, Z values       | 0.15      | 0.11   | 0.11     | 650,714  |
+| 2: Forward fill with activities           | 0.43      | 0.39   | 0.37     | 506,470  |
+| 3: Lifecycle transformation               | 0.27      | 0.35   | 0.27     | 650,641  |
+| 3.5: Adjusted lifecycle transformation    | 0.69      | 0.65   | 0.65     | 650,641  |
+| 4: Manually engineered features           | 0.72      | 0.64   | 0.66     | 650,714  |
+
+## Random Forest Classifier
+
+| Preprocessing Approach                     | Precision | Recall | F1-Score | Support  |
+|--------------------------------------------|-----------|--------|----------|----------|
+| 1: Forward fill with X, Y, Z values       | 0.10      | 0.10   | 0.10     | 650,714  |
+| 2: Forward fill with activities           | 0.41      | 0.41   | 0.39     | 506,470  |
+| 3: Lifecycle transformation               | 0.28      | 0.37   | 0.31     | 650,641  |
+| 3.5: Adjusted lifecycle transformation    | 0.76      | 0.66   | 0.67     | 650,641  |
+| 4: Manually engineered features           | 0.76      | 0.64   | 0.66     | 650,714  |
+
+## AdaBoost Classifier
+
+| Preprocessing Approach                     | Precision | Recall | F1-Score | Support  |
+|--------------------------------------------|-----------|--------|----------|----------|
+| 1: Forward fill with X, Y, Z values       | 0.10      | 0.10   | 0.10     | 650,714  |
+| 2: Forward fill with activities           | 0.21      | 0.27   | 0.23     | 506,470  |
+| 3: Lifecycle transformation               | 0.11      | 0.12   | 0.12     | 650,641  |
+| 3.5: Adjusted lifecycle transformation    | 0.30      | 0.21   | 0.24     | 650,641  |
+| 4: Manually engineered features           | 0.28      | 0.11   | 0.12     | 650,714  |
+
+## Multi-Layer Perceptron
+
+| Preprocessing Approach                     | Precision | Recall | F1-Score | Support  |
+|--------------------------------------------|-----------|--------|----------|----------|
+| 1: Forward fill with X, Y, Z values       | 0.13      | 0.11   | 0.11     | 650,714  |
+| 2: Forward fill with activities           | 0.31      | 0.38   | 0.33     | 506,470  |
+| 3: Lifecycle transformation               | 0.19      | 0.26   | 0.20     | 650,641  |
+| 3.5: Adjusted lifecycle transformation    | 0.21      | 0.33   | 0.22     | 650,641  |
+| 4: Manually engineered features           | 0.57      | 0.45   | 0.46     | 650,714  |
+
+## Recurrent Neural Network
+
+| Preprocessing Approach                     | Precision | Recall | F1-Score | Support  |
+|--------------------------------------------|-----------|--------|----------|----------|
+| 4: Manually engineered features           | 0.87      | 0.78   | 0.77     | 93050  |
+
+# Final remarks
+
+This project was done in the scope of the Complex System Design module at the University of Camerino. For further questions towards the code or the data, please do not hesitate to reach out to me.
